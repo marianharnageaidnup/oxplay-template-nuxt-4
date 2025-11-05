@@ -1,10 +1,10 @@
 <template>
-  <div class="language-switcher">
+  <div class="flex items-center gap-2 p-4">
     <select
       id="language-select"
       v-model="currentLocale"
       @change="changeLocale"
-      class="language-select"
+      class="px-2 py-2 border border-gray-300 rounded hover:border-gray-600 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 cursor-pointer text-base transition-colors"
     >
       <option
         v-for="locale in availableLocales"
@@ -29,35 +29,6 @@ const availableLocales = computed(() => {
 
 const changeLocale = async () => {
   await setLocale(currentLocale.value);
-  // Navigate to the same page in the new locale
   await navigateTo(switchLocalePath(currentLocale.value));
 };
 </script>
-
-<style scoped>
-.language-switcher {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 1rem;
-}
-
-.language-select {
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background-color: white;
-  cursor: pointer;
-  font-size: 1rem;
-}
-
-.language-select:hover {
-  border-color: #999;
-}
-
-.language-select:focus {
-  outline: none;
-  border-color: #4caf50;
-  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
-}
-</style>

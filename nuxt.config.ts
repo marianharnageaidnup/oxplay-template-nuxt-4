@@ -1,4 +1,5 @@
 import brand from "./brand.config";
+import tailwindcss from "@tailwindcss/vite";
 
 export default defineNuxtConfig({
   runtimeConfig: {
@@ -41,8 +42,11 @@ export default defineNuxtConfig({
     },
   },
 
-  // css: ["~/assets/path to css file"],
-  // plugins: [],
+  css: ["~/assets/css/global.css"],
+
+  vite: {
+    plugins: [tailwindcss()],
+  },
 
   modules: ["@nuxtjs/i18n"],
 
