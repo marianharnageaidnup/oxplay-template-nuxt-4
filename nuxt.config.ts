@@ -43,7 +43,30 @@ export default defineNuxtConfig({
 
   // css: ["~/assets/path to css file"],
   // plugins: [],
-  // modules: [],
+
+  modules: ["@nuxtjs/i18n"],
+
+  i18n: {
+    defaultLocale: "en",
+    locales: [
+      {
+        code: "en",
+        name: "English",
+        file: "en.json",
+      },
+      {
+        code: "id",
+        name: "Bahasa Indonesia",
+        file: "id.json",
+      },
+    ],
+    strategy: "prefix_except_default",
+    detectBrowserLanguage: {
+      useCookie: true,
+      cookieKey: "i18n_redirected",
+      redirectOn: "root",
+    },
+  },
 
   nitro: {
     prerender: {
