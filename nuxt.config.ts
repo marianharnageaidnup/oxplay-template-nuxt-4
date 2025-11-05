@@ -2,6 +2,7 @@ import brand from "./brand.config";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineNuxtConfig({
+  compatibilityDate: "2025-11-05",
   runtimeConfig: {
     DOMAIN_ID: process.env.DOMAIN_ID,
     API_BASE_URL: process.env.API_BASE_URL,
@@ -69,6 +70,9 @@ export default defineNuxtConfig({
       useCookie: true,
       cookieKey: "i18n_redirected",
       redirectOn: "root",
+    },
+    bundle: {
+      optimizeTranslationDirective: false,
     },
   },
 
