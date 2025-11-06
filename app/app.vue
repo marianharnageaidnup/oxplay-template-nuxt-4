@@ -1,8 +1,6 @@
 <template>
   <div>
-    <NuxtRouteAnnouncer />
     <LanguageSwitcher />
-    <h1>{{ $t("title") }}</h1>
-    <NuxtWelcome />
+    <h1>{{ $t('title') }}</h1>
   </div>
 </template>
