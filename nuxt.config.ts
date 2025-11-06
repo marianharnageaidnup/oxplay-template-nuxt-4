@@ -49,7 +49,7 @@ export default defineNuxtConfig({
     plugins: [tailwindcss()],
   },
 
-  modules: ["@nuxtjs/i18n"],
+  modules: ["@nuxtjs/i18n", "@pinia/nuxt"],
 
   i18n: {
     defaultLocale: "en",
