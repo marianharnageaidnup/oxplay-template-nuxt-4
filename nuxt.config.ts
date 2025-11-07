@@ -23,6 +23,9 @@ export default defineNuxtConfig({
       nsoftScriptURLProd:
         'https://ignite-sdk.nl-ams-1.linodeobjects.com/production/ignite-parent.js',
       nsoftScriptURLStage: 'https://ignite-sdk.nl-ams-1.linodeobjects.com/staging/ignite-parent.js',
+      recaptcha: {
+        siteKey: process.env.RECAPTCHA_SITE_KEY || '',
+      },
     },
   },
 

@@ -30,11 +30,67 @@
           <button type="submit" :disabled="isLoading" class="p-2 bg-blue-400">Login</button>
         </form>
 
-        <div class="text-center py-10">
+        <div class="text-center my-10">
           <h2 class="mb-2">Register</h2>
-          <button @click="handleRegister" type="button" class="p-2 w-full bg-yellow-400">
-            Register
-          </button>
+          <form
+            @submit.prevent="handleRegister"
+            class="flex flex-col gap-y-2 border rounded-md p-4 bg-blue-50"
+          >
+            <input
+              v-model="registerFormData.username"
+              type="text"
+              required
+              placeholder="Username"
+              class="p-2 bg-white"
+            />
+            <input
+              v-model="registerFormData.email"
+              type="email"
+              required
+              placeholder="Email"
+              class="p-2 bg-white"
+            />
+            <input
+              v-model="registerFormData.password"
+              type="password"
+              required
+              placeholder="Password"
+              class="p-2 bg-white"
+            />
+            <input
+              v-model="registerFormData.password_confirmation"
+              type="password"
+              required
+              placeholder="Confirm Password"
+              class="p-2 bg-white"
+            />
+            <input
+              v-model="registerFormData.phone"
+              type="tel"
+              required
+              placeholder="Phone"
+              class="p-2 bg-white"
+            />
+            <select v-model="registerFormData.currency" class="p-2" required>
+              <option value="IDR">IDR - Indonesian Rupiah</option>
+              <option value="USD">USD - US Dollar</option>
+              <option value="EUR">EUR - Euro</option>
+            </select>
+            <input
+              v-model="registerFormData.referral_code"
+              type="text"
+              placeholder="Referral Code (Optional)"
+              class="p-2 bg-white"
+            />
+            <CaptchaInput
+              v-model="registerFormData.captcha"
+              label="Enter CAPTCHA"
+              :invalid="!!registerError"
+              :error="registerError"
+              @update:captcha-key="registerFormData.captcha_key = $event"
+            />
+            <button type="submit" :disabled="isLoading" class="p-2 bg-yellow-400">Register</button>
+          </form>
         </div>
       </div>
 
@@ -51,8 +107,8 @@
 </template>
 
 <script setup lang="ts">
-  import { reactive } from 'vue';
-  import type { LoginPayload } from '~/types/auth';
+  import { reactive, ref } from 'vue';
+  import type { LoginPayload, RegistrationPayload } from '~/types/auth';
 
   const userStore = useUserStore();
   const { login, logout, register, isLoading } = useAuth();
@@ -60,6 +116,21 @@
     email: '',
     password: '',
   });
+
+  const registerFormData = reactive<RegistrationPayload>({
+    username: 'testUser',
+    email: 'testUser@test.com',
+    password: 'Test.1234',
+    password_confirmation: 'Test.1234',
+    captcha: '',
+    currency: 'IDR',
+    phone: '+62819555831',
+    referral_code: '',
+    captcha_type: 'image',
+    captcha_key: '',
+  });
+
+  const registerError = ref('');
 
   const handleLogin = async () => {
     const result = await login({
@@ -75,24 +146,27 @@
   };
 
   const handleRegister = async () => {
-    const result = await register({
-      username: '',
-      email: '',
-      password: '',
-      password_confirmation: '',
-      captcha: '',
-      currency: 'IDR',
-      phone: '',
-      referral_code: '',
-      captcha_type: '',
-      captcha_key: '',
-    });
+    try {
+      const result = await register(registerFormData);
 
-    console.log('Login Response:', {
-      success: result.success,
-      message: result.message,
-      errors: result.errors,
-    });
+      console.log('Registration Response:', {
+        success: result.success,
+        message: result.message,
+        errors: result.errors,
+      });
+
+      if (result.success) {
+        alert('Registration successful!');
+      } else {
+        if (result.errors?.captcha && result.errors.captcha.length > 0) {
+          registerError.value = result.errors.captcha[0] || 'Invalid CAPTCHA';
+        } else {
+          registerError.value = result.message || 'Registration failed';
+        }
+      }
+    } catch (error) {
+      console.error('Registration Error:', error);
+    }
   };
 
   const handleLogout = async () => {

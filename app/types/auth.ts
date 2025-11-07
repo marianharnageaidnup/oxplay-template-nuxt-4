@@ -12,10 +12,12 @@ export interface RegistrationPayload {
   email: string;
   password: string;
   password_confirmation: string;
-  captcha: string | boolean;
+  captcha: string;
   currency: string;
   phone: string;
   referral_code: string;
+  captcha_type: string;
+  captcha_key: string;
 }
 
 export interface UserValidations {

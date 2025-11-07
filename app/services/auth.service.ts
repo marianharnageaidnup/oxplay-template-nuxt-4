@@ -60,11 +60,9 @@ export const authService = {
     try {
       const $api = getApiClient();
 
-      const { captcha, ...registrationPayload } = data;
-
       const response = (await $api(`${getApiBaseUrl()}/${ROUTES.auth.register}`, {
         method: 'POST',
-        body: registrationPayload,
+        body: data,
       })) as any;
 
       return {
