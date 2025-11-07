@@ -1,20 +1,19 @@
 <template>
-  <div>
-    <LanguageSwitcher />
-    <h1>{{ $t('title') }}</h1>
-  </div>
+  <ClientOnly>
+    <div v-if="userStore.isLoading" class="flex items-center justify-center min-h-screen">
+      <div
+        class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"
+      ></div>
+      <p class="ml-4 text-gray-600">Loading...</p>
+    </div>
+    <template v-else>
+      <NuxtLayout>
+        <NuxtPage />
+      </NuxtLayout>
+    </template>
+  </ClientOnly>
 </template>
 
 <script setup lang="ts">
-  // Basic example of pinia state
-  import { useGlobalStore } from './stores/global';
-  const globalStore = useGlobalStore();
-
-  // Access state
-  console.log(globalStore.isLoading);
-  console.log(globalStore.message);
-
-  // Call actions
-  globalStore.setLoading(true);
-  globalStore.setMessage('Hello World');
+  const userStore = useUserStore();
 </script>

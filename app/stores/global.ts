@@ -4,12 +4,9 @@ export const useGlobalStore = defineStore('global', {
     message: 'Global state',
   }),
 
-  getters: {
-    // Add your computed properties/getters here
-  },
+  getters: {},
 
   actions: {
-    // Add your methods/actions here
     setLoading(value: boolean) {
       this.isLoading = value;
     },
