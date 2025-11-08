@@ -1,54 +1,33 @@
 /**
  * Authentication API Service
  * Handles all authentication-related API calls
- * Stores tokens securely in HTTP-only cookies
+ * Uses nuxt-auth-utils for secure session management
  */
 
-import type { LoginPayload, RegistrationPayload, AuthResponse } from '~/types/auth';
-import { useAuthCookie } from '~/composables/useCookie';
-import { ROUTES } from '~/constants/routes';
-
-const getApiBaseUrl = () => {
-  const config = useRuntimeConfig();
-  return config.public.apiBaseUrl;
-};
-
-const getApiClient = () => $fetch;
+import type { LoginPayload, RegistrationPayload, User } from '~/types/auth';
 
 export const authService = {
   /**
    * Login user with email and password
-   * Stores token_id and session_id in secure cookies
+   * Session is managed by server-side nuxt-auth-utils
    */
-  async login(credentials: LoginPayload): Promise<AuthResponse> {
+  async login(credentials: LoginPayload) {
     try {
-      const $api = getApiClient();
-
-      const response = (await $api(`${getApiBaseUrl()}/${ROUTES.auth.login}`, {
+      const response = await $fetch<{ success: boolean; message: string; user: User }>('/api/auth/login', {
         method: 'POST',
         body: credentials,
-      })) as any;
-
-      if (response?.user?.token_id && response?.user?.session_id) {
-        const { setAuthTokens } = useAuthCookie();
-        setAuthTokens(response.user.token_id, response.user.session_id);
-      } else {
-        console.error('Missing token_id or session_id in response:', {
-          has_token_id: !!response?.user?.token_id,
-          has_session_id: !!response?.user?.session_id,
-        });
-      }
+      });
 
       return {
         success: true,
-        message: 'Login successful',
+        message: response.message || 'Login successful',
         data: response.user,
       };
     } catch (error: any) {
       return {
         success: false,
         message: error.data?.message || error.message || 'Login failed',
-        errors: error.data?.errors,
+        errors: error.data,
       };
     }
   },
@@ -56,53 +35,42 @@ export const authService = {
   /**
    * Register a new user
    */
-  async register(data: RegistrationPayload): Promise<AuthResponse> {
+  async register(data: RegistrationPayload) {
     try {
-      const $api = getApiClient();
-
-      const response = (await $api(`${getApiBaseUrl()}/${ROUTES.auth.register}`, {
+      const response = await $fetch<{ success: boolean; message: string; data?: any }>('/api/auth/register', {
         method: 'POST',
         body: data,
-      })) as any;
+      });
 
       return {
         success: true,
-        message: response?.message || 'Registration successful',
-        data: response?.data,
+        message: response.message || 'Registration successful',
+        data: response.data,
       };
     } catch (error: any) {
       return {
         success: false,
         message: error.data?.message || error.message || 'Registration failed',
-        errors: error.data?.errors,
+        errors: error.data,
       };
     }
   },
 
   /**
    * Logout user
+   * Clears server-side session
    */
-  async logout(): Promise<AuthResponse> {
+  async logout() {
     try {
-      const $api = getApiClient();
-      const { getTokenId, removeAuthTokens } = useAuthCookie();
-      const tokenId = getTokenId();
-
-      await $api(`${getApiBaseUrl()}/${ROUTES.auth.logout}`, {
+      const response = await $fetch<{ success: boolean; message: string }>('/api/auth/logout', {
         method: 'POST',
-        headers: tokenId ? { Authorization: `Bearer ${tokenId}` } : {},
       });
-
-      removeAuthTokens();
 
       return {
         success: true,
-        message: 'Logged out successfully',
+        message: response.message || 'Logged out successfully',
       };
     } catch (error: any) {
-      const { removeAuthTokens } = useAuthCookie();
-      removeAuthTokens();
-
       return {
         success: true,
         message: 'Logged out',
@@ -113,23 +81,16 @@ export const authService = {
   /**
    * Refresh authentication token
    */
-  async refreshToken(): Promise<AuthResponse> {
+  async refreshToken() {
     try {
-      const $api = getApiClient();
-
-      const response = (await $api(`${getApiBaseUrl()}${ROUTES.auth.refresh}`, {
+      const response = await $fetch<{ success: boolean; message: string; user: User }>('/api/auth/refresh', {
         method: 'POST',
-      })) as any;
-
-      if (response?.user?.token_id && response?.user?.session_id) {
-        const { setAuthTokens } = useAuthCookie();
-        setAuthTokens(response.user.token_id, response.user.session_id);
-      }
+      });
 
       return {
         success: true,
-        message: 'Token refreshed',
-        data: response?.user,
+        message: response.message || 'Token refreshed',
+        data: response.user,
       };
     } catch (error: any) {
       return {
@@ -142,35 +103,18 @@ export const authService = {
   /**
    * Get current user
    */
-  async getCurrentUser(): Promise<AuthResponse> {
+  async getCurrentUser() {
     try {
-      const $api = getApiClient();
-      const { getTokenId } = useAuthCookie();
-      const tokenId = getTokenId();
-
-      if (!tokenId) {
-        return {
-          success: false,
-          message: 'Not authenticated',
-        };
-      }
-
-      const response = (await $api(`${getApiBaseUrl()}${ROUTES.auth.user}`, {
+      const response = await $fetch<{ success: boolean; user: User }>('/api/auth/user', {
         method: 'GET',
-        headers: {
-          Authorization: `Bearer ${tokenId}`,
-        },
-      })) as any;
+      });
 
       return {
         success: true,
         message: 'User fetched',
-        data: response,
+        data: response.user,
       };
     } catch (error: any) {
-      const { removeAuthTokens } = useAuthCookie();
-      removeAuthTokens();
-
       return {
         success: false,
         message: error.data?.message || error.message || 'Failed to fetch user',

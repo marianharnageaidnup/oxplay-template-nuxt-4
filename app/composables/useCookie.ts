@@ -3,22 +3,36 @@
  * Securely manages authentication tokens and session using cookies
  */
 
-export const useAuthCookie = () => {
-  const TOKEN_ID_KEY = 'token_id';
-  const SESSION_ID_KEY = 'session_id';
+import { SESSION_ID_KEY, TOKEN_ID_KEY, ACCESS_TOKEN_KEY } from '~/constants/constants';
 
+export interface CookieOptions {
+  expiresInSeconds?: number;
+  days?: number;
+}
+
+export const useAuthCookie = () => {
   /**
    * Set a cookie with secure settings
+   * @param name - Cookie name
+   * @param value - Cookie value
+   * @param options - Cookie options (expiresInSeconds takes precedence over days)
    */
-  const setCookie = (name: string, value: string, days: number = 7) => {
+  const setCookie = (name: string, value: string, options: CookieOptions = {}) => {
     if (import.meta.client) {
       const date = new Date();
-      date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
-      const expires = `expires=${date.toUTCString()}`;
-      const sameSite = 'SameSite=Strict';
-      const secure = location.protocol === 'https:' ? 'Secure' : '';
 
-      document.cookie = `${name}=${value}; ${expires}; ${sameSite}; ${secure}; Path=/`;
+      // If expiresInSeconds is provided, use it; otherwise use days (default 7)
+      if (options.expiresInSeconds) {
+        date.setTime(date.getTime() + options.expiresInSeconds * 1000);
+      } else {
+        const days = options.days ?? 7;
+        date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+      }
+
+      const expires = date.toUTCString();
+      const secure = location.protocol === 'https:' ? 'Secure; ' : '';
+
+      document.cookie = `${name}=${value}; expires=${expires}; ${secure}SameSite=Lax; Path=/`;
     }
   };
 
@@ -53,11 +67,31 @@ export const useAuthCookie = () => {
   };
 
   /**
-   * Set authentication tokens (token_id and session_id)
+   * Set authentication tokens (access_token, token_id and session_id)
+   * @param accessToken - JWT access token
+   * @param tokenId - Token ID from user object
+   * @param sessionId - Session ID from user object
+   * @param expiresIn - Token expiration time in seconds (for access_token)
    */
-  const setAuthTokens = (tokenId: string, sessionId: string) => {
-    setCookie(TOKEN_ID_KEY, tokenId);
-    setCookie(SESSION_ID_KEY, sessionId);
+  const setAuthTokens = (
+    accessToken: string,
+    tokenId: string,
+    sessionId: string,
+    expiresIn?: number,
+  ) => {
+    // Set access_token with expiresIn if provided, otherwise use default (7 days)
+    setCookie(ACCESS_TOKEN_KEY, accessToken, expiresIn ? { expiresInSeconds: expiresIn } : {});
+
+    // Set token_id and session_id with 30 days validity
+    setCookie(TOKEN_ID_KEY, tokenId, { days: 30 });
+    setCookie(SESSION_ID_KEY, sessionId, { days: 30 });
+  };
+
+  /**
+   * Get access_token from cookie
+   */
+  const getAccessToken = (): string | null => {
+    return getCookie(ACCESS_TOKEN_KEY);
   };
 
   /**
@@ -78,6 +112,7 @@ export const useAuthCookie = () => {
    * Remove all authentication cookies
    */
   const removeAuthTokens = () => {
+    removeCookie(ACCESS_TOKEN_KEY);
     removeCookie(TOKEN_ID_KEY);
     removeCookie(SESSION_ID_KEY);
   };
@@ -103,6 +138,7 @@ export const useAuthCookie = () => {
 
   return {
     setAuthTokens,
+    getAccessToken,
     getTokenId,
     getSessionId,
     removeAuthTokens,

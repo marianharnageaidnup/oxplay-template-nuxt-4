@@ -1,30 +1,28 @@
 /**
  * Authentication Composable
  * Provides authentication functionality and session management
- * Uses Pinia store for shared state across all instances
+ * Uses nuxt-auth-utils for session management
  */
 
 import { computed } from 'vue';
 import type { LoginPayload, RegistrationPayload } from '~/types/auth';
 import { authService } from '~/services/auth.service';
-import { useAuthCookie } from './useCookie';
-import { useUserStore } from '~/stores/user';
 
 export const useAuth = () => {
-  const { removeToken } = useAuthCookie();
-  const userStore = useUserStore();
+  const { loggedIn, user, clear, fetch } = useUserSession();
 
-  const user = computed(() => userStore.user);
-  const isAuthenticated = computed(() => userStore.isAuthenticated);
-  const isLoading = computed(() => userStore.isLoading);
-  const isInitialized = computed(() => userStore.isInitialized);
+  const isAuthenticated = computed(() => loggedIn.value);
+  const isLoading = computed(() => false); // nuxt-auth-utils doesn't expose loading state
+  const isInitialized = computed(() => true); // Session is always initialized with nuxt-auth-utils
 
   const login = async (credentials: LoginPayload) => {
     try {
       const response = await authService.login(credentials);
 
       if (response.success && response.data) {
-        userStore.setUser(response.data);
+        // Session is automatically managed by the server
+        // Refresh the local session state
+        await fetch();
 
         return {
           success: true,
@@ -76,8 +74,8 @@ export const useAuth = () => {
   const logout = async () => {
     try {
       await authService.logout();
-      userStore.clearUser();
-      removeToken();
+      // Clear the local session
+      await clear();
 
       return {
         success: true,
@@ -85,36 +83,12 @@ export const useAuth = () => {
       };
     } catch (error: any) {
       console.error('Logout error:', error);
-      userStore.clearUser();
-      removeToken();
+      await clear();
 
       return {
         success: true,
         message: 'Logged out',
       };
-    }
-  };
-
-  const initializeSession = async () => {
-    try {
-      userStore.setLoading(true);
-      const { hasAuthTokens } = useAuthCookie();
-
-      if (hasAuthTokens()) {
-        const response = await authService.getCurrentUser();
-
-        if (response.success && response.data) {
-          userStore.setUser(response.data);
-        } else {
-          removeToken();
-          userStore.clearUser();
-        }
-      } else {
-        userStore.clearUser();
-      }
-    } catch (error: any) {
-      console.error('Session initialization error:', error);
-      userStore.clearUser();
     }
   };
 
@@ -126,6 +100,5 @@ export const useAuth = () => {
     login,
     register,
     logout,
-    initializeSession,
   };
 };

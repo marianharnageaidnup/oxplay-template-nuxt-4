@@ -1,6 +1,7 @@
 /**
  * API Interceptor Plugin
  * Adds custom headers to all $fetch requests globally
+ * Uses nuxt-auth-utils session for authentication token
  */
 
 export default defineNuxtPlugin((locale) => {
@@ -20,12 +21,15 @@ export default defineNuxtPlugin((locale) => {
       headers['IDNC-ISMOBILE'] = isMobile ? '1' : '0';
       headers['IDNC-DOMAIN-ID'] = domainId;
 
-      if (typeof document !== 'undefined') {
-        const { getTokenId } = useAuthCookie();
-        const tokenId = getTokenId();
-
-        if (tokenId && !headers['Authorization']) {
-          headers['Authorization'] = `Bearer ${tokenId}`;
+      // Get access token from nuxt-auth-utils session
+      if (import.meta.client) {
+        try {
+          const { session } = useUserSession();
+          if (session.value?.access_token && !headers['Authorization']) {
+            headers['Authorization'] = `Bearer ${session.value.access_token}`;
+          }
+        } catch (error) {
+          // Session not available in this context, skip auth header
         }
       }
 

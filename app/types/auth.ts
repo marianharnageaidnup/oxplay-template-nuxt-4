@@ -111,8 +111,9 @@ export interface User {
   streaming_ips: string | null;
   currency: string;
   cash: string;
-  bonus: number;
+  bonus: string;
   category_deposit: string;
+  custom_amount: string | null;
   use_last_amount: number;
   playing_poker: number;
   session_id: string;
@@ -140,6 +141,20 @@ export interface User {
 }
 
 export interface AuthResponse {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+  user: User;
+}
+
+export interface AuthServiceResponse {
+  success: boolean;
+  message: string;
+  data?: AuthResponse;
+  errors?: Record<string, string[]>;
+}
+
+export interface UserServiceResponse {
   success: boolean;
   message: string;
   data?: User;

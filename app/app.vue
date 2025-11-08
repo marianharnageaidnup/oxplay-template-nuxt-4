@@ -16,4 +16,23 @@
 
 <script setup lang="ts">
   const userStore = useUserStore();
+  const { user } = useUserSession();
+
+  // Sync nuxt-auth-utils session with Pinia store
+  watch(
+    user,
+    (newUser) => {
+      if (newUser) {
+        userStore.setUser(newUser);
+      } else {
+        userStore.clearUser();
+      }
+    },
+    { immediate: true }
+  );
+  console.log(userStore.isLoading);
+
+  // Debug log
+  console.log('User from session:', user.value);
+  console.log('User from store:', userStore.user);
 </script>
