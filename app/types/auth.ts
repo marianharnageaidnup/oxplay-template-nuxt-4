@@ -88,10 +88,10 @@ export interface UserLimit {
   fishing_active: number;
   lotto_active: number;
   arcade_active: number;
-  other_limits: any | null;
-  live_limit: any[];
-  prematch_limit: any[];
-  virtual_limit: any[];
+  other_limits: Record<string, unknown> | null;
+  live_limit: unknown[];
+  prematch_limit: unknown[];
+  virtual_limit: unknown[];
 }
 
 export interface User {
@@ -131,13 +131,13 @@ export interface User {
   full_name: string;
   balance: string;
   user_reserve: string;
-  bonus_type: any[];
+  bonus_type: unknown[];
   egt_enabled: boolean;
-  passkeys: any[];
+  passkeys: unknown[];
   detail: UserDetail;
   group: UserGroup;
   limit: UserLimit;
-  active_bonus: any | null;
+  active_bonus: Record<string, unknown> | null;
 }
 
 export interface AuthResponse {

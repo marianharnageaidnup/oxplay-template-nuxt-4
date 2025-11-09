@@ -4,17 +4,21 @@
  */
 
 import type { LoginPayload, AuthResponse } from '~/types/auth';
+import { logger } from '../../../server/utils/logger';
+import { API_ROUTES } from '../../../server/utils/constants';
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
   const body = await readBody<LoginPayload>(event);
 
   try {
-    // Call external authentication API
-    const response = await $fetch<AuthResponse>(`${config.public.apiBaseUrl}/auth/login`, {
-      method: 'POST',
-      body,
-    });
+    const response = await $fetch<AuthResponse>(
+      `${config.public.apiBaseUrl}/${API_ROUTES.auth.login}`,
+      {
+        method: 'POST',
+        body,
+      }
+    );
 
     if (!response?.access_token || !response?.user) {
       throw createError({
@@ -40,13 +44,15 @@ export default defineEventHandler(async (event) => {
       message: 'Login successful',
       user: response.user,
     };
-  } catch (error: any) {
-    console.error('Login error:', error);
+  } catch (error) {
+    logger.apiError('Login failed', error, {
+      endpoint: '/api/auth/login',
+    });
 
     throw createError({
-      statusCode: error.statusCode || 401,
-      message: error.data?.message || error.message || 'Login failed',
-      data: error.data?.errors,
+      statusCode: (error as any).statusCode || 401,
+      message: (error as any).data?.message || (error as any).message || 'Login failed',
+      data: (error as any).data?.errors,
     });
   }
 });

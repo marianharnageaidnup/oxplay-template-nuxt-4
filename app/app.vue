@@ -1,17 +1,7 @@
 <template>
-  <ClientOnly>
-    <div v-if="userStore.isLoading" class="flex items-center justify-center min-h-screen">
-      <div
-        class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"
-      ></div>
-      <p class="ml-4 text-gray-600">Loading...</p>
-    </div>
-    <template v-else>
-      <NuxtLayout>
-        <NuxtPage />
-      </NuxtLayout>
-    </template>
-  </ClientOnly>
+  <NuxtLayout>
+    <NuxtPage />
+  </NuxtLayout>
 </template>
 
 <script setup lang="ts">
@@ -19,6 +9,8 @@
   const { user } = useUserSession();
 
   // Sync nuxt-auth-utils session with Pinia store
+  // Session is available immediately (SSR + client hydration)
+  // No loading state needed as nuxt-auth-utils handles this internally
   watch(
     user,
     (newUser) => {
@@ -28,11 +20,6 @@
         userStore.clearUser();
       }
     },
-    { immediate: true }
+    { immediate: true },
   );
-  console.log(userStore.isLoading);
-
-  // Debug log
-  console.log('User from session:', user.value);
-  console.log('User from store:', userStore.user);
 </script>

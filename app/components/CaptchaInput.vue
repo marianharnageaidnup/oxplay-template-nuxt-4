@@ -41,6 +41,7 @@
 
 <script setup lang="ts">
   import { ref, watch, onMounted } from 'vue';
+  import { logger } from '~/utils/logger';
 
   const props = defineProps<{
     label?: string;
@@ -83,7 +84,7 @@
       captchaImage.value = response.img;
       emit('update:captchaKey', response.key);
     } catch (error) {
-      console.error('Failed to fetch CAPTCHA:', error);
+      logger.error('Failed to fetch CAPTCHA', error);
     } finally {
       isLoading.value = false;
     }

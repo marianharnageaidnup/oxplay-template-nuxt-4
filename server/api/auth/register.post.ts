@@ -4,14 +4,15 @@
  */
 
 import type { RegistrationPayload } from '~/types/auth';
+import { logger } from '../../../server/utils/logger';
+import { API_ROUTES } from '../../../server/utils/constants';
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
   const body = await readBody<RegistrationPayload>(event);
 
   try {
-    // Call external registration API
-    const response = await $fetch<any>(`${config.public.apiBaseUrl}/auth/register`, {
+    const response = await $fetch<any>(`${config.public.apiBaseUrl}/${API_ROUTES.auth.register}`, {
       method: 'POST',
       body,
     });
@@ -22,7 +23,7 @@ export default defineEventHandler(async (event) => {
       data: response?.data,
     };
   } catch (error: any) {
-    console.error('Registration error:', error);
+    logger.apiError('Registration error', error, { endpoint: '/api/auth/register' });
 
     throw createError({
       statusCode: error.statusCode || 400,

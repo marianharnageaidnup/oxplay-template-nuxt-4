@@ -5,6 +5,7 @@
  */
 
 import type { LoginPayload, RegistrationPayload, User } from '~/types/auth';
+import { getErrorMessage, getValidationErrors } from '~/types/errors';
 
 export const authService = {
   /**
@@ -23,11 +24,11 @@ export const authService = {
         message: response.message || 'Login successful',
         data: response.user,
       };
-    } catch (error: any) {
+    } catch (error) {
       return {
         success: false,
-        message: error.data?.message || error.message || 'Login failed',
-        errors: error.data,
+        message: getErrorMessage(error, 'Login failed'),
+        errors: getValidationErrors(error),
       };
     }
   },
@@ -47,11 +48,11 @@ export const authService = {
         message: response.message || 'Registration successful',
         data: response.data,
       };
-    } catch (error: any) {
+    } catch (error) {
       return {
         success: false,
-        message: error.data?.message || error.message || 'Registration failed',
-        errors: error.data,
+        message: getErrorMessage(error, 'Registration failed'),
+        errors: getValidationErrors(error),
       };
     }
   },
@@ -70,7 +71,7 @@ export const authService = {
         success: true,
         message: response.message || 'Logged out successfully',
       };
-    } catch (error: any) {
+    } catch (error) {
       return {
         success: true,
         message: 'Logged out',
@@ -92,10 +93,10 @@ export const authService = {
         message: response.message || 'Token refreshed',
         data: response.user,
       };
-    } catch (error: any) {
+    } catch (error) {
       return {
         success: false,
-        message: error.data?.message || error.message || 'Token refresh failed',
+        message: getErrorMessage(error, 'Token refresh failed'),
       };
     }
   },
@@ -114,10 +115,10 @@ export const authService = {
         message: 'User fetched',
         data: response.user,
       };
-    } catch (error: any) {
+    } catch (error) {
       return {
         success: false,
-        message: error.data?.message || error.message || 'Failed to fetch user',
+        message: getErrorMessage(error, 'Failed to fetch user'),
       };
     }
   },

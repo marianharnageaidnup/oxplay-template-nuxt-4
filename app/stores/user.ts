@@ -9,8 +9,6 @@ import type { User } from '~/types/auth';
 export const useUserStore = defineStore('user', {
   state: () => ({
     user: null as User | null,
-    // isLoading removed - nuxt-auth-utils handles session loading
-    // isInitialized removed - session is always initialized with nuxt-auth-utils
   }),
 
   getters: {

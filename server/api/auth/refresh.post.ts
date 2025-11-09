@@ -4,6 +4,8 @@
  */
 
 import type { AuthResponse } from '~/types/auth';
+import { logger } from '../../../server/utils/logger';
+import { API_ROUTES } from '../../../server/utils/constants';
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
@@ -19,13 +21,15 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    // Call external refresh API
-    const response = await $fetch<AuthResponse>(`${config.public.apiBaseUrl}/auth/refresh`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${session.user.token_id}`,
-      },
-    });
+    const response = await $fetch<AuthResponse>(
+      `${config.public.apiBaseUrl}/${API_ROUTES.auth.refresh}`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.user.token_id}`,
+        },
+      }
+    );
 
     if (!response?.access_token || !response?.user) {
       throw createError({
@@ -34,7 +38,6 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    // Calculate new expiration timestamp
     const expiresAt = Date.now() + response.expires_in * 1000;
 
     // Update user session with new tokens
@@ -52,7 +55,7 @@ export default defineEventHandler(async (event) => {
       user: response.user,
     };
   } catch (error: any) {
-    console.error('Token refresh error:', error);
+    logger.apiError('Token refresh error', error, { endpoint: '/api/auth/refresh' });
 
     // Clear session on refresh failure
     await clearUserSession(event);

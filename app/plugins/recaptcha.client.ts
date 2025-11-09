@@ -1,3 +1,5 @@
+import { logger } from '~/utils/logger';
+
 export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig();
   const siteKey = (config.public.recaptcha as { siteKey: string }).siteKey;
@@ -71,7 +73,7 @@ export default defineNuxtPlugin(() => {
                     sitekey: siteKey,
                     size: 'invisible',
                     callback: (token: string) => {
-                      console.log('reCAPTCHA token received:', token);
+                      logger.debug('reCAPTCHA token received', { tokenLength: token.length });
                       resolve(token);
                     },
                     'error-callback': () => {
@@ -90,29 +92,29 @@ export default defineNuxtPlugin(() => {
                   return;
                 }
               } else {
-                console.log('Widget already exists with ID:', widgetId);
+                logger.debug('Widget already exists', { widgetId });
               }
 
               try {
                 window.grecaptcha.execute(widgetId);
               } catch (executeError) {
-                console.error('Error executing widget:', executeError);
+                logger.error('Error executing widget', executeError);
                 reject(executeError);
               }
             } catch (error) {
-              console.error('Error in grecaptcha.ready callback:', error);
+              logger.error('Error in grecaptcha.ready callback', error);
               reject(error);
             }
           });
         } catch (error) {
-          console.error('reCAPTCHA execute error:', error);
+          logger.error('reCAPTCHA execute error', error);
           reject(error);
         }
       });
     },
     reset: () => {
       if (widgetId !== null && window.grecaptcha) {
-        console.log('Resetting reCAPTCHA widget');
+        logger.debug('Resetting reCAPTCHA widget', { widgetId });
         window.grecaptcha.reset(widgetId);
       }
     },

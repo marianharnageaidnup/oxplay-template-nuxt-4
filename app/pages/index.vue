@@ -6,7 +6,7 @@
         class="flex flex-col items-center justify-center gap-y-4"
       >
         <h1>{{ $t('title') }}</h1>
-        <LanguageSwitcher />
+        <LazyLanguageSwitcher />
         <p>
           Is user Logedin:
           <span
@@ -15,7 +15,21 @@
             >{{ userStore.isAuthenticated }}</span
           >
         </p>
+
+        <div class="flex flex-col gap-y-2 p-4 border rounded-md">
+          <p>
+            Username: <span class="font-bold">{{ userStore.username }}</span>
+          </p>
+          <p>
+            Balance: <span class="font-bold">{{ userStore.balance }} {{ userStore.currency }}</span>
+          </p>
+        </div>
+
         <button @click="handleLogout" class="p-2 bg-blue-400 cursor-pointer">logout</button>
+
+        <button type="button" @click="handleRefresh" class="p-2 bg-purple-400">
+          Refresh auth token
+        </button>
       </div>
       <div v-if="!userStore.isAuthenticated">
         <form @submit.prevent="handleLogin" class="flex flex-col gap-y-2 border rounded-md p-4">
@@ -82,7 +96,7 @@
               placeholder="Referral Code (Optional)"
               class="p-2 bg-white"
             />
-            <CaptchaInput
+            <LazyCaptchaInput
               v-model="registerFormData.captcha"
               label="Enter CAPTCHA"
               :invalid="!!registerError"
@@ -93,15 +107,6 @@
           </form>
         </div>
       </div>
-
-      <div v-if="userStore.isAuthenticated" class="flex flex-col gap-y-2 p-4 border rounded-md">
-        <p>
-          Username: <span class="font-bold">{{ userStore.username }}</span>
-        </p>
-        <p>
-          Balance: <span class="font-bold">{{ userStore.balance }} {{ userStore.currency }}</span>
-        </p>
-      </div>
     </div>
   </ClientOnly>
 </template>
@@ -111,7 +116,7 @@
   import type { LoginPayload, RegistrationPayload } from '~/types/auth';
 
   const userStore = useUserStore();
-  const { login, logout, register, isLoading } = useAuth();
+  const { login, logout, register, refreshToken, isLoading } = useAuth();
   const formData = reactive<LoginPayload>({
     email: '',
     password: '',
@@ -133,43 +138,31 @@
   const registerError = ref('');
 
   const handleLogin = async () => {
-    const result = await login({
+    await login({
       email: formData.email,
       password: formData.password,
-    });
-
-    console.log('Login Response:', {
-      success: result.success,
-      message: result.message,
-      errors: result.errors,
     });
   };
 
   const handleRegister = async () => {
-    try {
-      const result = await register(registerFormData);
+    const result = await register(registerFormData);
 
-      console.log('Registration Response:', {
-        success: result.success,
-        message: result.message,
-        errors: result.errors,
-      });
-
-      if (result.success) {
-        alert('Registration successful!');
+    if (result.success) {
+      alert('Registration successful!');
+    } else {
+      if (result.errors?.captcha && result.errors.captcha.length > 0) {
+        registerError.value = result.errors.captcha[0] || 'Invalid CAPTCHA';
       } else {
-        if (result.errors?.captcha && result.errors.captcha.length > 0) {
-          registerError.value = result.errors.captcha[0] || 'Invalid CAPTCHA';
-        } else {
-          registerError.value = result.message || 'Registration failed';
-        }
+        registerError.value = result.message || 'Registration failed';
       }
-    } catch (error) {
-      console.error('Registration Error:', error);
     }
   };
 
   const handleLogout = async () => {
     await logout();
+  };
+
+  const handleRefresh = async () => {
+    await refreshToken();
   };
 </script>

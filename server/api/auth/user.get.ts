@@ -4,6 +4,8 @@
  */
 
 import type { User } from '~/types/auth';
+import { logger } from '../../../server/utils/logger';
+import { API_ROUTES } from '../../../server/utils/constants';
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
@@ -20,7 +22,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Call external user API
-    const user = await $fetch<User>(`${config.public.apiBaseUrl}/auth/user`, {
+    const user = await $fetch<User>(`${config.public.apiBaseUrl}/${API_ROUTES.auth.user}`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${session.access_token}`,
@@ -45,7 +47,7 @@ export default defineEventHandler(async (event) => {
       user,
     };
   } catch (error: any) {
-    console.error('Get user error:', error);
+    logger.apiError('Get user error', error, { endpoint: '/api/auth/user' });
 
     // Clear session on failure
     await clearUserSession(event);
